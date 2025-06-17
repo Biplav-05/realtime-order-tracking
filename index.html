@@ -5,20 +5,15 @@
   <title>Real-Time Order Tracker</title>
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    h1 { color: #333; }
-    #orders { margin-top: 20px; }
+    body { font-family: Arial, sans-serif; padding: 20px; display: flex; gap: 40px; }
+    .tracker { width: 50%; }
+    h2 { color: #333; }
     .order {
       border: 1px solid #ccc;
       padding: 10px;
       margin-bottom: 10px;
       border-radius: 6px;
       background: #f9f9f9;
-      width: 300px;
-    }
-    .order-id {
-      font-weight: bold;
-      font-size: 1.1em;
     }
     .countdown {
       color: green;
@@ -27,44 +22,46 @@
   </style>
 </head>
 <body>
-  <h1>Real-Time Order Tracker - Restro 1</h1>
-  <div id="orders">Connecting...</div>
+  <div class="tracker">
+    <h2>Restro 1 Orders</h2>
+    <div id="restro_1_orders">Connecting...</div>
+  </div>
+  <div class="tracker">
+    <h2>Restro 2 Orders</h2>
+    <div id="restro_2_orders">Connecting...</div>
+  </div>
 
   <script>
     const socket = io("http://localhost:5000");
 
     socket.on("connect", () => {
       console.log("Connected to server");
+      socket.emit("subscribe", { restaurant_id: "restro_1" });
       socket.emit("subscribe", { restaurant_id: "restro_2" });
     });
 
     socket.on("order_update", data => {
-      console.log("Received order update:", data);
+      const orders = data.orders;
+      if (!orders || orders.length === 0) return;
 
-      const ordersDiv = document.getElementById("orders");
-      ordersDiv.innerHTML = "";
+      const restro_id = orders[0].restaurant_id;
+      const container = document.getElementById(`${restro_id}_orders`);
+      container.innerHTML = "";
 
-      if (!data.orders || data.orders.length === 0) {
-        ordersDiv.innerHTML = "<p>No active orders</p>";
-        return;
-      }
-
-      data.orders.forEach(order => {
+      orders.forEach(order => {
         const orderEl = document.createElement("div");
         orderEl.className = "order";
-
         orderEl.innerHTML = `
-          <div class="order-id">Order ID: ${order.order_id}</div>
-          <div>Restaurant: ${order.restaurant_id}</div>
-          <div>Countdown: <span class="countdown">${order.countdown}s</span></div>
+          <div><strong>Order ID:</strong> ${order.order_id}</div>
+          <div><strong>Countdown:</strong> <span class="countdown">${order.countdown}s</span></div>
         `;
-
-        ordersDiv.appendChild(orderEl);
+        container.appendChild(orderEl);
       });
     });
 
     socket.on("disconnect", () => {
-      document.getElementById("orders").innerHTML = "<p>Disconnected from server</p>";
+      document.getElementById("restro_1_orders").innerHTML = "<p>Disconnected</p>";
+      document.getElementById("restro_2_orders").innerHTML = "<p>Disconnected</p>";
     });
   </script>
 </body>

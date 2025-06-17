@@ -3,6 +3,7 @@ import json
 import time
 import uuid
 import os
+import random
 
 # Initialize Kafka producer with JSON serialization of messages
 producer = KafkaProducer(
@@ -18,16 +19,17 @@ def create_order():
     Each order has a unique UUID as order_id and status "created".
     Sends one order every 10 seconds to the Kafka topic 'orders'.
     '''
+    restaurants = ["restro_1", "restro_2"]
     while True:
         order = {
             "order_id": str(uuid.uuid4()),
-            "restaurant_id": "restro_2",
+            "restaurant_id": random.choice(restaurants),
             "countdown": 120,
             "status": "created"
         }
         print(f"Producing order: {order}")
         producer.send('orders', value=order)
-        time.sleep(10)
+        time.sleep(5)
 
 if __name__ == "__main__":
     # Start producing orders

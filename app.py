@@ -2,6 +2,7 @@ from flask import Flask, request
 from flask_socketio import SocketIO, emit
 from order_processor import orders_by_restaurant, consume_orders
 import threading
+import os
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -43,7 +44,7 @@ def handle_subscribe(data):
             else:
                 print(f"No orders found for {restro_id}")
 
-            socketio.sleep(1)  # Non-blocking sleep for SocketIO
+            socketio.sleep(1)
 
     # Start the background task to send order updates
     socketio.start_background_task(send_updates)
@@ -53,7 +54,7 @@ if __name__ == "__main__":
     '''
     Starts the Kafka consumer in a separate daemon thread
     to populate orders_by_restaurant continuously.
-    Then runs the Flask-SocketIO server on port 5000 in debug mode.
+    Then runs the Flask-SocketIO server on dedicated port
     '''
     threading.Thread(target=consume_orders, daemon=True).start()
-    socketio.run(app, debug=True, port=5000)
+    socketio.run(app, debug=True, port= int(os.environ['APP_PORT']))
