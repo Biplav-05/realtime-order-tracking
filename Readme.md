@@ -84,7 +84,3 @@ python app.py
 Feel free to customize and extend this demo for your use case!
 
 ---
-
-## License
-
-MIT License
